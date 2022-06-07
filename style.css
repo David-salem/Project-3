@@ -10,3 +10,8 @@ body{
 button{
     width:7%
 }
+
+.company_image{
+    height: 30px;
+    width: 30px;
+}

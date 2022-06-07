@@ -3,25 +3,40 @@ const btn = document.getElementById("btn");
 
 btn.addEventListener('click', () => {
 
-
       document.getElementById("spinner").classList.add("spinner-border");
 
-      const fetch_url = `https://stock-exchange-dot-full-stack-course-services.ew.r.appspot.com/api/v3/search?query=${result.value}&limit=10&exchange=NASDAQ`;
+      fetch(`https://stock-exchange-dot-full-stack-course-services.ew.r.appspot.com/api/v3/search?query=${result.value}&limit=10&exchange=NASDAQ`).then(resp => resp.json())
+      .then((data) => {
 
-      fetch(fetch_url)
-      .then(function(response) {
-        return response.json();
-      })
-      .then(function(data) {
+        let symbol = [];
 
-        let result = "";
-        
-            data.forEach(myFunction);
-            document.getElementById("spinner").classList.remove("spinner-border");
-            document.getElementById("sample_div").innerHTML = result;
+          data.forEach(myFunction);
 
-            function myFunction(value) {
-                result += `<li class="list-unstyled"><a href="/company.html?symbol=${value.symbol}" class="text-decoration-none font-weight-normal text-secondary fs-4 hover-overlay">${value.name} (${value.symbol})</a></li>`
-            }
-      });  
-});
+          function myFunction(value) {
+            symbol.push(value.symbol);
+          }
+
+            for (let i = 0; i < symbol.length; i++) {
+              fetch(`https://stock-exchange-dot-full-stack-course-services.ew.r.appspot.com/api/v3/company/profile/${symbol[i]}`)
+              .then(resp => resp.json())
+              .then((data) => {
+                console.log(data);
+                document.getElementById("spinner").classList.remove("spinner-border");
+
+                changesPercentage = (Math.round(data.profile.changesPercentage * 100) / 100).toFixed(2);
+
+                let color ="";
+
+                if(data.profile.changesPercentage < 0) {
+                  color = "red";
+                } else if (data.profile.changesPercentage > 0)
+                {
+                  color = "green";
+                } else color = "black";
+
+                document.getElementById("sample_div").innerHTML += `<li class="list-unstyled mt-2"><a href="/company.html?symbol=${data.symbol}" class="text-decoration-none font-weight-normal text-secondary fs-4 hover-overlay"><img src="${data.profile.image}" class="img-responsive rounded company_image"> ${data.profile.companyName} (${data.symbol}) <span style='color:${color}'>(${changesPercentage})</span></a></li>`;
+
+              })
+
+              }})
+        });
